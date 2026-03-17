@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Transliterator</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.input-container {
+    position: relative;
+    border-bottom: 1px solid #ddd;
+}
+
+textarea {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-size: 20px;
+    padding: 20px 60px 20px 20px;
+    outline: none;
+    min-height: 120px;
+    box-sizing: border-box;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    border: none;
+    background: #f3f3f3;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.clear-btn:hover {
+    background: #e5e5e5;
+}
+
+.result {
+    flex: 1;
+    padding: 40px;
+    font-size: 48px;
+    font-weight: 500;
+    line-height: 1.3;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+</style>
+</head>
+
+<body>
+
+<div class="input-container">
+<textarea id="input" placeholder="Введите текст"></textarea>
+<button class="clear-btn" onclick="clearText()">✕</button>
+</div>
+
+<div class="result" id="output"></div>
+
+<script>
+
+const map = {
+'А':'A','а':'a',
+'Б':'B','б':'b',
+'В':'V','в':'v',
+'Г':'G','г':'g',
+'Д':'D','д':'d',
+'Е':'E','е':'e',
+'Ж':'Ž','ж':'ž',
+'З':'Z','з':'z',
+'И':'Í','и':'í',
+'Й':'I','й':'i',
+'К':'K','к':'k',
+'Л':'L','л':'l',
+'М':'M','м':'m',
+'Н':'N','н':'n',
+'О':'O','о':'o',
+'П':'P','п':'p',
+'Р':'R','р':'r',
+'С':'S','с':'s',
+'Т':'T','т':'t',
+'У':'U','у':'u',
+'Ф':'F','ф':'f',
+'Х':'H','х':'h',
+'Ц':'C','ц':'c',
+'Ч':'Č','ч':'č',
+'Ш':'Š','ш':'š',
+'Щ':'Ś','щ':'ś',
+'Ы':'Ý','ы':'ý',
+'Э':'Ę','э':'ę',
+'Ь':'Y','ь':'y',
+'Ъ':"'",'ъ':"'"
+};
+
+function isLetter(c){
+    return /[А-Яа-яЁё]/.test(c);
+}
+
+function isUpper(c){
+    return c === c.toUpperCase() && c !== c.toLowerCase();
+}
+
+function convertSpecial(char, prev, next){
+
+    const lowerMap = {
+        'ю':'ju',
+        'я':'ja',
+        'ё':'jo'
+    };
+
+    const lower = lowerMap[char.toLowerCase()];
+    const cap = lower[0].toUpperCase() + lower.slice(1);
+    const upper = lower.toUpperCase();
+
+    const prevLetter = isLetter(prev);
+    const nextLetter = isLetter(next);
+    const nextUpper = isUpper(next);
+
+    if(!prevLetter){
+        if(nextUpper){
+            return upper;
+        }
+        return char === char.toLowerCase() ? lower : cap;
+    }
+
+    const inside = prevLetter && nextLetter;
+
+    if(!inside){
+        return char === char.toLowerCase() ? lower : upper;
+    }
+
+    const prevUpper = isUpper(prev);
+
+    if(prevUpper && nextUpper){
+        return char === char.toLowerCase() ? cap : upper;
+    }
+
+    if(!prevUpper && !nextUpper){
+        return char === char.toLowerCase() ? lower : cap;
+    }
+
+    return char === char.toLowerCase() ? lower : upper;
+}
+
+function transliterate(text){
+
+    let result = "";
+
+    for(let i=0;i<text.length;i++){
+
+        let char = text[i];
+        let prev = text[i-1] || "";
+        let next = text[i+1] || "";
+
+        if("юяёЮЯЁ".includes(char)){
+            result += convertSpecial(char,prev,next);
+            continue;
+        }
+
+        result += map[char] ?? char;
+    }
+
+    return result;
+}
+
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+
+input.addEventListener("input", ()=>{
+    output.textContent = transliterate(input.value);
+});
+
+function clearText(){
+    input.value = "";
+    output.textContent = "";
+}
+
+</script>
+
+</body>
+</html>
